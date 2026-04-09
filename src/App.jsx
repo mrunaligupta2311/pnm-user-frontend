@@ -1,5 +1,5 @@
  // src/App.jsx
-import React from "react";
+import React, { useEffect } from "react";
 import { BrowserRouter as Router, Routes, Route, Navigate } from "react-router-dom";
 
 /* ================= PAGES ================= */
@@ -24,11 +24,27 @@ import Support from "./pages/Support";
 
 /* ================= APP ================= */
 export default function App() {
+
+  /* 🔥 PWA INSTALL HANDLER */
+  useEffect(() => {
+    const handler = (e) => {
+      e.preventDefault();
+      window.deferredPrompt = e; // global store
+      console.log("Install prompt ready");
+    };
+
+    window.addEventListener("beforeinstallprompt", handler);
+
+    return () => {
+      window.removeEventListener("beforeinstallprompt", handler);
+    };
+  }, []);
+
   return (
     <Router>
       <Routes>
 
-        {/* ========== AUTH FLOW (OPTIONAL ABHI) ========== */}
+        {/* ========== AUTH FLOW ========== */}
         <Route path="/" element={<Splash />} />
         <Route path="/login" element={<Login />} />
         <Route path="/signup" element={<Signup />} />

@@ -1,33 +1,90 @@
  // src/components/Header.jsx
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { colors, radius, shadows, spacing } from "../styles/theme";
 
 export default function Header() {
   const [showHelp, setShowHelp] = useState(false);
+  const [canInstall, setCanInstall] = useState(false);
+
+  /* 🔥 Check if install prompt available */
+  useEffect(() => {
+    const checkInstall = () => {
+      if (window.deferredPrompt) {
+        setCanInstall(true);
+      }
+    };
+
+    checkInstall();
+    window.addEventListener("beforeinstallprompt", checkInstall);
+
+    return () => {
+      window.removeEventListener("beforeinstallprompt", checkInstall);
+    };
+  }, []);
+
+  /* 🔥 Install handler */
+  const handleInstall = async () => {
+    const promptEvent = window.deferredPrompt;
+
+    if (!promptEvent) {
+      alert("Install not available yet");
+      return;
+    }
+
+    promptEvent.prompt();
+
+    const { outcome } = await promptEvent.userChoice;
+
+    if (outcome === "accepted") {
+      console.log("User installed app");
+    } else {
+      console.log("User dismissed install");
+    }
+
+    window.deferredPrompt = null;
+    setCanInstall(false);
+  };
 
   return (
     <>
       <header style={header}>
         <div style={inner}>
-          {/* ✅ Logo left side */}
+          
+          {/* ✅ Logo */}
           <img src="/P.N.M.-icon.png" alt="PNM logo" style={logo} />
 
-          {/* ✅ Customer Support right side */}
-          <button
-            style={supportBtn}
-            onClick={() => setShowHelp(true)}
-            onMouseEnter={(e) => {
-              e.currentTarget.style.background = colors.primary + "22";
-            }}
-            onMouseLeave={(e) => {
-              e.currentTarget.style.background = "#f3f4f6";
-            }}
-          >
-            Customer Support
-          </button>
+          {/* ✅ Right Actions */}
+          <div style={actions}>
+            
+            {/* 🔥 Install Button */}
+            {canInstall && (
+              <button
+                style={installBtn}
+                onClick={handleInstall}
+              >
+                Install
+              </button>
+            )}
+
+            {/* ✅ Support Button */}
+            <button
+              style={supportBtn}
+              onClick={() => setShowHelp(true)}
+              onMouseEnter={(e) => {
+                e.currentTarget.style.background = colors.primary + "22";
+              }}
+              onMouseLeave={(e) => {
+                e.currentTarget.style.background = "#f3f4f6";
+              }}
+            >
+              Support
+            </button>
+
+          </div>
         </div>
       </header>
 
+      {/* 🔥 HELP MODAL */}
       {showHelp && (
         <div style={overlay} onClick={() => setShowHelp(false)}>
           <div style={modal} onClick={(e) => e.stopPropagation()}>
@@ -46,7 +103,8 @@ export default function Header() {
   );
 }
 
-/* STYLES */
+/* ================= STYLES ================= */
+
 const header = {
   position: "fixed",
   top: 0,
@@ -58,7 +116,7 @@ const header = {
   background: "#ffffffcc",
   backdropFilter: "blur(10px)",
   zIndex: 1000,
-  borderBottom: `1px solid #e5e7eb`,
+  borderBottom: "1px solid #e5e7eb",
 };
 
 const inner = {
@@ -74,6 +132,25 @@ const logo = {
   height: 26,
 };
 
+const actions = {
+  display: "flex",
+  gap: "8px",
+  alignItems: "center",
+};
+
+/* 🔥 Install Button */
+const installBtn = {
+  padding: "6px 10px",
+  borderRadius: radius.md,
+  border: "none",
+  background: colors.primary,
+  color: "#fff",
+  cursor: "pointer",
+  fontSize: "12px",
+  fontWeight: 600,
+};
+
+/* Support Button */
 const supportBtn = {
   padding: "6px 12px",
   borderRadius: radius.md,
@@ -85,6 +162,7 @@ const supportBtn = {
   transition: "all 0.25s ease",
 };
 
+/* MODAL */
 const overlay = {
   position: "fixed",
   inset: 0,
