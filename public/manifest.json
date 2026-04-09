@@ -1,0 +1,29 @@
+ {
+  "name": "PNM - Puncture Near Me",
+  "short_name": "PNM",
+  "description": "Fast and reliable puncture repair service near you.",
+
+  "start_url": "/",
+  "scope": "/",
+
+  "display": "standalone",
+  "orientation": "portrait",
+
+  "background_color": "#f7f9fc",
+  "theme_color": "#0f2a55",
+
+  "icons": [
+    {
+      "src": "/P.N.M.-icon.png",
+      "sizes": "192x192",
+      "type": "image/png",
+      "purpose": "any maskable"
+    },
+    {
+      "src": "/P.N.M.-icon.png",
+      "sizes": "512x512",
+      "type": "image/png",
+      "purpose": "any maskable"
+    }
+  ]
+}
