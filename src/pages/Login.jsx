@@ -39,7 +39,7 @@ export default function Login() {
     // 🔥 Simulated API
     setTimeout(() => {
       setLoading(false);
-      navigate("/home"); // ✅ mechanic flow
+      navigate("/location"); // ✅ mechanic flow
     }, 1000);
   };
 
