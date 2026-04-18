@@ -29,15 +29,19 @@ export default function Tracking() {
   const navigate = useNavigate();
   const { mechanic, vehicle, location, resetFlow } = useApp();
 
-  const userPosition = useMemo(() => location?.lat
-    ? [location.lat, location.lng]
-    : [22.3072, 73.1812], [location]);
+  const userPosition = useMemo(
+    () =>
+      location?.lat
+        ? [location.lat, location.lng]
+        : [22.3072, 73.1812],
+    [location]
+  );
 
   const [mechanicPos, setMechanicPos] = useState([22.312, 73.185]);
   const [statusIndex, setStatusIndex] = useState(0);
   const [showCancel, setShowCancel] = useState(false);
 
-  const hasNavigated = useRef(false); // 🔥 IMPORTANT FIX
+  const hasNavigated = useRef(false);
 
   const statusFlow = useMemo(
     () => [
@@ -50,7 +54,7 @@ export default function Tracking() {
     []
   );
 
-  /* ================= MOVE MECHANIC ================= */
+  /* ================= MOCK MOVEMENT ================= */
   useEffect(() => {
     const interval = setInterval(() => {
       setMechanicPos((p) => [p[0] - 0.00012, p[1] - 0.00012]);
@@ -59,7 +63,7 @@ export default function Tracking() {
     return () => clearInterval(interval);
   }, []);
 
-  /* ================= STATUS UPDATE ================= */
+  /* ================= STATUS ================= */
   useEffect(() => {
     if (statusIndex >= statusFlow.length - 1) return;
 
@@ -70,23 +74,19 @@ export default function Tracking() {
     return () => clearTimeout(t);
   }, [statusIndex]);
 
-  /* ================= SAFE NAVIGATION FIX ================= */
+  /* ================= NAVIGATION ================= */
   useEffect(() => {
-    if (
-      statusIndex === statusFlow.length - 1 &&
-      !hasNavigated.current
-    ) {
+    if (statusIndex === statusFlow.length - 1 && !hasNavigated.current) {
       hasNavigated.current = true;
 
       const t = setTimeout(() => {
-        navigate("/WorkProgress"); // ✅ FIXED ROUTE
+        navigate("/WorkProgress");
       }, 1500);
 
       return () => clearTimeout(t);
     }
-  }, [statusIndex, navigate, statusFlow.length]);
+  }, [statusIndex, navigate]);
 
-  /* ================= ACTIONS ================= */
   const handleCall = () => {
     if (!mechanic?.phone) return alert("Number not available");
     window.location.href = `tel:${mechanic.phone}`;
@@ -94,7 +94,7 @@ export default function Tracking() {
 
   const handleCancel = () => {
     resetFlow();
-    navigate("/Mechanics"); // ✅ FIXED (case corrected)
+    navigate("/mechanics");
   };
 
   return (
@@ -123,29 +123,14 @@ export default function Tracking() {
           </div>
         </div>
 
-        {/* ================= MECHANIC INFO (NEW) ================= */}
+        {/* ================= INFO ================= */}
         <Card>
-          <h3 style={{ marginBottom: 6 }}>{mechanic?.name || "Mechanic"}</h3>
+          <h3>{mechanic?.name || "Mechanic"}</h3>
 
-          <p style={text}>
-            🛠️ Skill: <b>Puncture Specialist</b>
-          </p>
-
-          <p style={text}>
-            🚗 Vehicle: <b>{vehicle?.type}</b>
-          </p>
-
-          <p style={text}>
-            🔢 Vehicle No: <b>{vehicle?.number}</b>
-          </p>
-
-          <p style={text}>
-            📍 Status: <b>{statusFlow[statusIndex]}</b>
-          </p>
-
-          <p style={text}>
-            📞 Contact: <b>{mechanic?.phone || "N/A"}</b>
-          </p>
+          <p style={text}>🚗 Vehicle: <b>{vehicle?.type}</b></p>
+          <p style={text}>🔢 Number: <b>{vehicle?.number}</b></p>
+          <p style={text}>📍 Status: <b>{statusFlow[statusIndex]}</b></p>
+          <p style={text}>📞 Phone: <b>{mechanic?.phone || "N/A"}</b></p>
         </Card>
 
         {/* ================= ACTIONS ================= */}
@@ -159,14 +144,14 @@ export default function Tracking() {
           </button>
         </div>
 
-        {/* ================= CANCEL MODAL ================= */}
+        {/* ================= MODAL ================= */}
         {showCancel && (
           <div style={overlay} onClick={() => setShowCancel(false)}>
             <div style={modal} onClick={(e) => e.stopPropagation()}>
               <h3>Cancel Request?</h3>
 
               <p style={{ fontSize: 13, color: "#666" }}>
-                If mechanic is already on the way, charges may apply.
+                Charges may apply if mechanic is en route.
               </p>
 
               <div style={{ display: "flex", gap: 10 }}>
@@ -201,6 +186,23 @@ const mapBox = {
   overflow: "hidden",
   position: "relative",
 };
+
+/* 🔥 FIX OVERLAP: move zoom controls down */
+const globalFix = `
+.leaflet-control-zoom {
+  margin-top: 55px !important;
+}
+`;
+
+if (typeof document !== "undefined") {
+  let style = document.getElementById("leaflet-fix-style");
+  if (!style) {
+    style = document.createElement("style");
+    style.id = "leaflet-fix-style";
+    style.innerHTML = globalFix;
+    document.head.appendChild(style);
+  }
+}
 
 const statusChip = {
   position: "absolute",

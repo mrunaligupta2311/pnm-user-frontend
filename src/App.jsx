@@ -59,7 +59,7 @@ export default function App() {
           <Route path="/tracking" element={<Tracking />} />
 
           {/* ✅ IMPORTANT FIX: correct route name */}
-          <Route path="/work" element={<WorkProgress />} />
+          <Route path="/WorkProgress" element={<WorkProgress />} />
 
           <Route path="/complete" element={<Complete />} />
 

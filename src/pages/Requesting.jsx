@@ -3,12 +3,7 @@ import { useNavigate } from "react-router-dom";
 import PageLayout from "../components/PageLayout";
 import Loader from "../components/Loader";
 
-import {
-  colors,
-  typography,
-  spacing,
-  radius,
-} from "../styles/theme";
+import { colors, typography, spacing } from "../styles/theme";
 
 export default function Requesting() {
   const navigate = useNavigate();
@@ -29,32 +24,62 @@ export default function Requesting() {
       if (i < steps.length) {
         setStatus(steps[i]);
       }
-    }, 600);
+    }, 700);
 
     const timer = setTimeout(() => {
       clearInterval(interval);
 
-      const accepted = Math.random() > 0.25;
+      // ==============================
+      // 🔥 DECISION LAYER (FRONTEND MODE)
+      // ==============================
+      let decision = "accepted"; 
+      // change manually to "rejected" for testing
 
-      if (accepted) {
+      // ==============================
+      // 🟢 BACKEND READY (future use)
+      // ==============================
+      /*
+      const fetchDecision = async () => {
+        try {
+          const res = await fetch("/api/request-status");
+          const data = await res.json();
+          decision = data.status; // "accepted" | "rejected"
+
+          if (decision === "accepted") {
+            navigate("/tracking");
+          } else {
+            navigate("/mechanics");
+          }
+        } catch (err) {
+          console.error(err);
+          navigate("/mechanics");
+        }
+      };
+
+      fetchDecision();
+      return;
+      */
+
+      // ==============================
+      // CURRENT FLOW (NO BACKEND)
+      // ==============================
+      if (decision === "accepted") {
         navigate("/tracking");
       } else {
-        alert("Mechanic declined. Try another.");
         navigate("/mechanics");
       }
-    }, 3000);
+    }, 3200);
 
     return () => {
-      clearTimeout(timer);
       clearInterval(interval);
+      clearTimeout(timer);
     };
-  }, []);
+  }, [navigate]);
 
   return (
     <PageLayout showHeader={false} showFooter={false}>
       <div style={container}>
 
-        {/* ANIMATION */}
         <div style={card}>
           <Loader text="Connecting..." />
 
@@ -62,7 +87,6 @@ export default function Requesting() {
 
           <p style={statusText}>{status}</p>
 
-          {/* DOTS ANIMATION */}
           <div style={dots}>
             <span style={dot}></span>
             <span style={dot}></span>
@@ -117,5 +141,4 @@ const dot = {
   height: 6,
   borderRadius: "50%",
   background: colors.primary,
-  animation: "pulse 1s infinite",
 };
