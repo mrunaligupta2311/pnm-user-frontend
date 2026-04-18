@@ -1,4 +1,5 @@
- import { useNavigate } from "react-router-dom";
+ import { useEffect } from "react";
+import { useNavigate } from "react-router-dom";
 import PageLayout from "../components/PageLayout";
 import Card from "../components/Card";
 import GradientButton from "../components/GradientButton";
@@ -6,13 +7,19 @@ import { useApp } from "../context/AppContext";
 
 export default function Mechanics() {
   const navigate = useNavigate();
-  const { setMechanic } = useApp();
+  const { setMechanic, location, vehicle } = useApp();
 
   const mechanics = [
     { id: 1, name: "Sharma Garage", rating: 4.5, distance: 1.2, charge: 80, phone: "9999999999" },
     { id: 2, name: "QuickFix Auto", rating: 4.2, distance: 2.5, charge: 60, phone: "8888888888" },
     { id: 3, name: "Speed Mechanic", rating: 4.8, distance: 1.8, charge: 100, phone: "7777777777" },
   ];
+
+  // 🔴 FLOW SAFETY GUARD (VERY IMPORTANT)
+  useEffect(() => {
+    if (!location) navigate("/location");
+    if (!vehicle) navigate("/vehicle");
+  }, [location, vehicle, navigate]);
 
   const handleSelect = (m) => {
     setMechanic(m);
