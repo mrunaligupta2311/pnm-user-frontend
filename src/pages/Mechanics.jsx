@@ -7,7 +7,11 @@ import { useApp } from "../context/AppContext";
 
 export default function Mechanics() {
   const navigate = useNavigate();
-  const { setMechanic, location, vehicle } = useApp();
+
+  const {
+    setMechanic,
+    setFlowStep,
+  } = useApp();
 
   const mechanics = [
     { id: 1, name: "Sharma Garage", rating: 4.5, distance: 1.2, charge: 80, phone: "9999999999" },
@@ -15,20 +19,26 @@ export default function Mechanics() {
     { id: 3, name: "Speed Mechanic", rating: 4.8, distance: 1.8, charge: 100, phone: "7777777777" },
   ];
 
-  // 🔴 FLOW SAFETY GUARD (VERY IMPORTANT)
+  /* ================= FLOW SYNC ONLY (NO BLOCKING) ================= */
   useEffect(() => {
-    if (!location) navigate("/location");
-    if (!vehicle) navigate("/vehicle");
-  }, [location, vehicle, navigate]);
+    // 🔥 just mark where user is
+    setFlowStep("mechanic");
+  }, []);
 
+  /* ================= SELECT ================= */
   const handleSelect = (m) => {
     setMechanic(m);
-    navigate("/cost");
+
+    // move flow forward
+    setFlowStep("request");
+
+    navigate("/requesting");
   };
 
   return (
     <PageLayout>
       <div style={container}>
+
         <h2>Select Mechanic</h2>
 
         {mechanics.map((m) => (
@@ -42,6 +52,7 @@ export default function Mechanics() {
             </GradientButton>
           </Card>
         ))}
+
       </div>
     </PageLayout>
   );

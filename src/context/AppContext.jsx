@@ -10,17 +10,21 @@ const defaultState = {
   vehicle: null,
   service: null,
   mechanic: null,
+
   request: {
     status: null,
     startedAt: null,
     updatedAt: null,
   },
+
   user: {
     name: "User",
     phone: "",
     wallet: 1200,
     isLoggedIn: false,
   },
+
+  flowStep: "location", // 🔥 NEW (IMPORTANT)
 };
 
 export function AppProvider({ children }) {
@@ -33,6 +37,9 @@ export function AppProvider({ children }) {
   const [mechanic, setMechanicState] = useState(null);
   const [request, setRequestState] = useState(defaultState.request);
   const [user, setUserState] = useState(defaultState.user);
+
+  /* 🔥 FLOW CONTROL */
+  const [flowStep, setFlowStep] = useState("location");
 
   /* ================= LOAD FROM STORAGE ================= */
   useEffect(() => {
@@ -48,6 +55,7 @@ export function AppProvider({ children }) {
         setMechanicState(parsed.mechanic || null);
         setRequestState(parsed.request || defaultState.request);
         setUserState(parsed.user || defaultState.user);
+        setFlowStep(parsed.flowStep || "location"); // 🔥 restore step
       }
     } catch (err) {
       console.warn("Failed to restore state:", err);
@@ -69,9 +77,10 @@ export function AppProvider({ children }) {
         mechanic,
         request,
         user,
+        flowStep, // 🔥 save step
       })
     );
-  }, [location, vehicle, service, mechanic, request, user, hydrated]);
+  }, [location, vehicle, service, mechanic, request, user, flowStep, hydrated]);
 
   /* ================= SAFE SETTERS ================= */
   const setLocation = (val) => setLocationState(val);
@@ -79,27 +88,42 @@ export function AppProvider({ children }) {
   const setService = (val) => setServiceState(val);
   const setMechanic = (val) => setMechanicState(val);
   const setUser = (val) => setUserState(val);
-
   const setRequest = (val) => setRequestState(val);
 
   /* ================= FLOW CONTROL ================= */
 
   const resetFlow = () => {
+    // ❌ do NOT reset everything (this was your bug)
+
+    setServiceState(null);
+    setMechanicState(null);
+    setRequestState(defaultState.request);
+
+    setFlowStep("mechanic"); // 🔥 IMPORTANT: resume here
+
+    localStorage.setItem(
+      STORAGE_KEY,
+      JSON.stringify({
+        location,
+        vehicle,
+        service: null,
+        mechanic: null,
+        request: defaultState.request,
+        user,
+        flowStep: "mechanic",
+      })
+    );
+  };
+
+  const hardResetFlow = () => {
     setLocationState(null);
     setVehicleState(null);
     setServiceState(null);
     setMechanicState(null);
     setRequestState(defaultState.request);
+    setFlowStep("location");
 
     localStorage.removeItem(STORAGE_KEY);
-  };
-
-  const softResetFlow = () => {
-    // keeps user data, resets only service flow
-    setVehicleState(null);
-    setServiceState(null);
-    setMechanicState(null);
-    setRequestState(defaultState.request);
   };
 
   const isFlowComplete = () => {
@@ -112,6 +136,8 @@ export function AppProvider({ children }) {
       startedAt: Date.now(),
       updatedAt: Date.now(),
     });
+
+    setFlowStep("request");
   };
 
   /* ================= PROVIDER ================= */
@@ -137,9 +163,12 @@ export function AppProvider({ children }) {
         user,
         setUser,
 
-        /* flow control */
+        /* flow */
+        flowStep,
+        setFlowStep,
+
         resetFlow,
-        softResetFlow,
+        hardResetFlow,
         isFlowComplete,
 
         /* system */
