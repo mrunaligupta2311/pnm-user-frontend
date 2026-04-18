@@ -10,34 +10,36 @@ export default function Cost() {
 
   if (!service || !mechanic) return null;
 
+  const punctureCost = service.basePrice || service.price || 0;
+  const platformFee = 20;
+  const visitCharge = mechanic.charge || 0;
+
   const vehicleExtra =
     vehicle?.type?.toLowerCase() === "car" ? 100 : 0;
 
-  const platformFee = 20;
-
   const total =
-    service.price + mechanic.charge + platformFee + vehicleExtra;
+    punctureCost + platformFee + vehicleExtra + visitCharge;
 
   return (
     <PageLayout>
-      <div style={{ marginTop: 56, padding: 16 }}>
+      <div style={container}>
         <h2>Cost Breakdown</h2>
 
-        <Card>
-          <p>Service: ₹{service.price}</p>
-          <p>Vehicle Charge: ₹{vehicleExtra}</p>
-          <p>Mechanic Visit: ₹{mechanic.charge}</p>
-          <p>Platform Fee: ₹{platformFee}</p>
+        <Card style={card}>
+          <Row label="Puncture Cost" value={punctureCost} />
+          <Row label="Vehicle Charge" value={vehicleExtra} />
+          <Row label="Platform Fee" value={platformFee} />
+          <Row label="Visit Charge" value={visitCharge} />
 
-          <hr />
+          <hr style={{ margin: "10px 0" }} />
 
           <h3>Total: ₹{total}</h3>
-        </Card>
 
-        <p style={{ fontSize: 12, color: "#666" }}>
-          Agar kaam nahi karwaya to visit charge lagega.  
-          Kaam karwaya to visit free hoga.
-        </p>
+          <p style={note}>
+            ⚠️ Visit charge is FREE if work is completed.
+            If cancelled, it will be charged.
+          </p>
+        </Card>
 
         <GradientButton fullWidth onClick={() => navigate("/requesting")}>
           Request Mechanic
@@ -46,3 +48,40 @@ export default function Cost() {
     </PageLayout>
   );
 }
+
+/* ============ UI HELPERS ============ */
+
+function Row({ label, value }) {
+  return (
+    <div style={row}>
+      <span>{label}</span>
+      <b>₹{value}</b>
+    </div>
+  );
+}
+
+/* ============ STYLES ============ */
+
+const container = {
+  display: "flex",
+  flexDirection: "column",
+  gap: 16,
+};
+
+const card = {
+  display: "flex",
+  flexDirection: "column",
+  gap: 8,
+};
+
+const row = {
+  display: "flex",
+  justifyContent: "space-between",
+  fontSize: 14,
+};
+
+const note = {
+  fontSize: 12,
+  color: "#666",
+  marginTop: 10,
+};

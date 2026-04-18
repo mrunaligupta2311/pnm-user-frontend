@@ -2,6 +2,7 @@
 import { useState } from "react";
 import { useNavigate } from "react-router-dom";
 import GradientButton from "../components/GradientButton";
+
 import {
   typography,
   colors,
@@ -25,14 +26,10 @@ export default function Signup() {
   const [showPassword, setShowPassword] = useState(false);
 
   const handleChange = (e) => {
-    const { name, value } = e.target;
-    setForm((prev) => ({ ...prev, [name]: value }));
+    setForm({ ...form, [e.target.name]: e.target.value });
   };
 
-  // ✅ validation helpers
   const isValidEmail = (email) => /\S+@\S+\.\S+/.test(email);
-
-  const isStrongPassword = (password) => password.length >= 6;
 
   const handleSignup = () => {
     const { name, email, password, confirmPassword } = form;
@@ -40,16 +37,16 @@ export default function Signup() {
     setError("");
 
     if (!name || !email || !password || !confirmPassword) {
-      setError("All fields are required");
+      setError("Please fill all fields");
       return;
     }
 
     if (!isValidEmail(email)) {
-      setError("Enter a valid email");
+      setError("Invalid email format");
       return;
     }
 
-    if (!isStrongPassword(password)) {
+    if (password.length < 6) {
       setError("Password must be at least 6 characters");
       return;
     }
@@ -61,28 +58,26 @@ export default function Signup() {
 
     setLoading(true);
 
-    // 🔥 Fake API call (replace later)
     setTimeout(() => {
       setLoading(false);
       navigate("/location");
-    }, 1000);
+    }, 900);
   };
 
   return (
-    <div style={container}>
-      
+    <div style={wrapper}>
+
       {/* HEADER */}
       <div style={header}>
         <h2 style={title}>Create Account</h2>
-        <p style={subtitle}>Signup to start using PNM</p>
+        <p style={subtitle}>Join PNM to get instant roadside help</p>
       </div>
 
-      {/* FORM */}
+      {/* CARD */}
       <div style={card}>
-        
+
         {/* NAME */}
         <input
-          type="text"
           name="name"
           placeholder="Full Name"
           value={form.name}
@@ -92,27 +87,26 @@ export default function Signup() {
 
         {/* EMAIL */}
         <input
-          type="email"
           name="email"
-          placeholder="Email address"
+          placeholder="Email Address"
           value={form.email}
           onChange={handleChange}
           style={input}
         />
 
         {/* PASSWORD */}
-        <div style={passwordWrapper}>
+        <div style={passwordWrap}>
           <input
-            type={showPassword ? "text" : "password"}
             name="password"
+            type={showPassword ? "text" : "password"}
             placeholder="Password"
             value={form.password}
             onChange={handleChange}
-            style={{ ...input, paddingRight: "40px" }}
+            style={input}
           />
 
           <span
-            style={eyeIcon}
+            style={eye}
             onClick={() => setShowPassword(!showPassword)}
           >
             {showPassword ? "🙈" : "👁️"}
@@ -121,8 +115,8 @@ export default function Signup() {
 
         {/* CONFIRM PASSWORD */}
         <input
-          type={showPassword ? "text" : "password"}
           name="confirmPassword"
+          type={showPassword ? "text" : "password"}
           placeholder="Confirm Password"
           value={form.confirmPassword}
           onChange={handleChange}
@@ -130,63 +124,56 @@ export default function Signup() {
         />
 
         {/* ERROR */}
-        {error && <p style={errorText}>{error}</p>}
+        {error && <div style={errorBox}>{error}</div>}
 
         {/* BUTTON */}
-        <GradientButton
-          fullWidth
-          onClick={handleSignup}
-          disabled={loading}
-        >
-          {loading ? "Creating account..." : "Create Account"}
+        <GradientButton fullWidth onClick={handleSignup}>
+          {loading ? "Creating Account..." : "Sign Up"}
         </GradientButton>
+
       </div>
 
       {/* LOGIN LINK */}
-      <p style={footerText}>
+      <p style={footer}>
         Already have an account?{" "}
         <span style={link} onClick={() => navigate("/login")}>
           Login
         </span>
       </p>
+
     </div>
   );
 }
 
 /* ================= STYLES ================= */
 
-const container = {
+const wrapper = {
   minHeight: "100dvh",
   display: "flex",
   flexDirection: "column",
   justifyContent: "center",
   alignItems: "center",
-  padding: spacing.md,
-  gap: spacing.md,
+  padding: spacing.lg,
   background: "linear-gradient(180deg, #ffffff 0%, #eef2ff 100%)",
 };
 
-/* HEADER */
 const header = {
   textAlign: "center",
+  marginBottom: spacing.lg,
 };
 
 const title = {
   ...typography.title,
-  fontSize: "24px",
-  fontWeight: "700",
-  color: colors.heading,
+  fontSize: 24,
 };
 
 const subtitle = {
   ...typography.subtitle,
-  color: colors.muted,
 };
 
-/* CARD */
 const card = {
   width: "100%",
-  maxWidth: "340px",
+  maxWidth: 360,
   padding: spacing.lg,
   borderRadius: radius.lg,
   background: "#fff",
@@ -197,7 +184,6 @@ const card = {
   gap: spacing.sm,
 };
 
-/* INPUT */
 const input = {
   width: "100%",
   padding: "14px",
@@ -207,30 +193,29 @@ const input = {
   outline: "none",
 };
 
-/* PASSWORD */
-const passwordWrapper = {
+const passwordWrap = {
   position: "relative",
 };
 
-const eyeIcon = {
+const eye = {
   position: "absolute",
   right: 12,
   top: "50%",
   transform: "translateY(-50%)",
   cursor: "pointer",
-  fontSize: "14px",
 };
 
-/* ERROR */
-const errorText = {
-  color: "red",
-  fontSize: "13px",
-  textAlign: "center",
+const errorBox = {
+  fontSize: 13,
+  padding: "10px",
+  borderRadius: radius.md,
+  background: "#fee2e2",
+  color: "#b91c1c",
 };
 
-/* FOOTER */
-const footerText = {
-  fontSize: "14px",
+const footer = {
+  marginTop: spacing.md,
+  fontSize: 14,
   color: colors.muted,
 };
 

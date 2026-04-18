@@ -1,96 +1,231 @@
- import { useNavigate } from "react-router-dom";
+ import { useState } from "react";
+import { useNavigate } from "react-router-dom";
 import PageLayout from "../components/PageLayout";
 import Card from "../components/Card";
 import GradientButton from "../components/GradientButton";
 import { useApp } from "../context/AppContext";
-import { typography, spacing, colors } from "../styles/theme";
+
+import {
+  typography,
+  spacing,
+  colors,
+  radius,
+  shadows,
+} from "../styles/theme";
 
 export default function PunctureDetails() {
   const navigate = useNavigate();
   const { setService, vehicle } = useApp();
 
-  const services = [
+  const [selected, setSelected] = useState(null);
+
+  const punctureServices = [
     {
-      id: "puncture",
-      title: "Tyre Puncture Repair",
-      desc: "Quick repair for flat tyres",
-      basePrice: 99,
+      id: "simple_puncture",
+      title: "Simple Tyre Puncture",
+      desc: "Basic nail / small hole repair",
+      priceRange: "₹80 - ₹150",
+      min: 80,
+      max: 150,
+      icon: "🛞",
     },
     {
-      id: "battery",
-      title: "Battery Jumpstart",
-      desc: "Dead battery assistance",
-      basePrice: 149,
+      id: "tube_puncture",
+      title: "Tube Tyre Puncture",
+      desc: "Tube repair or replacement",
+      priceRange: "₹120 - ₹250",
+      min: 120,
+      max: 250,
+      icon: "⚙️",
     },
     {
-      id: "towing",
-      title: "Towing Service",
-      desc: "Vehicle towing support",
-      basePrice: 499,
+      id: "side_cut",
+      title: "Side Wall Damage",
+      desc: "Severe tyre damage repair",
+      priceRange: "₹200 - ₹500",
+      min: 200,
+      max: 500,
+      icon: "⚠️",
+    },
+    {
+      id: "multiple",
+      title: "Multiple Punctures",
+      desc: "More than one puncture repair",
+      priceRange: "₹150 - ₹350",
+      min: 150,
+      max: 350,
+      icon: "🛞🛞",
+    },
+    {
+      id: "idk",
+      title: "Not Sure (Inspection Required)",
+      desc: "Mechanic will inspect & decide final cost",
+      priceRange: "₹100 - ₹600 (estimate)",
+      min: 100,
+      max: 600,
+      icon: "🤷",
     },
   ];
 
-  const handleSelect = (s) => {
-    const vehicleExtra = vehicle?.type?.toLowerCase() === "car" ? 100 : 0;
+  const handleSelect = (service) => {
+    setSelected(service.id);
+
+    const price =
+      Math.floor(Math.random() * (service.max - service.min + 1)) +
+      service.min;
 
     setService({
-      ...s,
-      price: s.basePrice + vehicleExtra,
+      id: service.id,
+      title: service.title,
+      desc: service.desc,
+      priceRange: service.priceRange,
+      price,
     });
 
-    navigate("/mechanics");
+    setTimeout(() => {
+      navigate("/mechanics");
+    }, 300);
   };
 
   return (
     <PageLayout>
       <div style={container}>
-        <h2 style={title}>Select Service</h2>
 
-        {services.map((s) => (
-          <Card key={s.id}>
-            <div style={row}>
-              <div>
-                <h3>{s.title}</h3>
-                <p style={desc}>{s.desc}</p>
+        {/* ================= STICKY HEADER ================= */}
+        <div style={stickyHeader}>
+          <h2 style={title}>Puncture Services</h2>
+          <p style={subtitle}>
+            Select issue type for accurate mechanic pricing
+          </p>
+        </div>
+
+        {/* ================= SCROLL LIST ================= */}
+        <div style={scrollArea}>
+          {punctureServices.map((s) => (
+            <Card
+              key={s.id}
+              style={{
+                ...card,
+                border:
+                  selected === s.id
+                    ? `2px solid ${colors.primary}`
+                    : `1px solid ${colors.border}`,
+              }}
+              onClick={() => setSelected(s.id)}
+            >
+              {/* TOP */}
+              <div style={topRow}>
+                <div style={iconBox}>
+                  <span style={icon}>{s.icon}</span>
+                </div>
+
+                <div style={{ flex: 1 }}>
+                  <h3 style={serviceTitle}>{s.title}</h3>
+                  <p style={desc}>{s.desc}</p>
+                </div>
+
+                <div style={priceTag}>{s.priceRange}</div>
               </div>
 
-              <p style={price}>₹{s.basePrice}</p>
-            </div>
+              {/* CTA */}
+              <div style={{ marginTop: 10 }}>
+                <GradientButton
+                  fullWidth
+                  onClick={() => handleSelect(s)}
+                >
+                  Select
+                </GradientButton>
+              </div>
+            </Card>
+          ))}
+        </div>
 
-            <GradientButton fullWidth onClick={() => handleSelect(s)}>
-              Select
-            </GradientButton>
-          </Card>
-        ))}
       </div>
     </PageLayout>
   );
 }
 
+/* ================= STYLES ================= */
+
 const container = {
-  padding: spacing.md,
-  marginTop: 56,
+  display: "flex",
+  flexDirection: "column",
+  height: "100%",
+  gap: spacing.sm,
+};
+
+/* 🔥 sticky header */
+const stickyHeader = {
+  position: "sticky",
+  top: 0,
+  zIndex: 10,
+  background: colors.background,
+  paddingBottom: spacing.sm,
+};
+
+/* scroll area */
+const scrollArea = {
+  flex: 1,
+  overflowY: "auto",
   display: "flex",
   flexDirection: "column",
   gap: spacing.md,
+  paddingBottom: spacing.lg,
 };
 
+/* text */
 const title = {
   ...typography.title,
-  textAlign: "center",
 };
 
-const row = {
+const subtitle = {
+  ...typography.subtitle,
+};
+
+/* card */
+const card = {
+  padding: spacing.md,
+  borderRadius: radius.lg,
+  boxShadow: shadows.soft,
+  cursor: "pointer",
+  transition: "all 0.2s ease",
+};
+
+/* row */
+const topRow = {
   display: "flex",
-  justifyContent: "space-between",
-  marginBottom: 10,
+  alignItems: "center",
+  gap: spacing.sm,
+};
+
+const iconBox = {
+  width: 44,
+  height: 44,
+  borderRadius: radius.md,
+  background: colors.backgroundGray,
+  display: "flex",
+  alignItems: "center",
+  justifyContent: "center",
+};
+
+const icon = {
+  fontSize: 20,
+};
+
+const serviceTitle = {
+  fontSize: 15,
+  fontWeight: 700,
+  color: colors.heading,
 };
 
 const desc = {
   fontSize: 12,
   color: colors.muted,
+  marginTop: 2,
 };
 
-const price = {
-  fontWeight: 600,
+const priceTag = {
+  fontSize: 13,
+  fontWeight: 700,
+  color: colors.primary,
 };

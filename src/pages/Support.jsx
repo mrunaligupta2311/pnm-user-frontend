@@ -1,10 +1,17 @@
- import { useState } from "react";
+ import { useState, useRef, useEffect } from "react";
 import PageLayout from "../components/PageLayout";
-import { spacing } from "../styles/theme";
+import Card from "../components/Card";
+
+import {
+  spacing,
+  colors,
+  radius,
+} from "../styles/theme";
 
 export default function Support() {
   const [messages, setMessages] = useState([]);
   const [text, setText] = useState("");
+  const chatRef = useRef(null);
 
   const send = () => {
     if (!text.trim()) return;
@@ -17,55 +24,154 @@ export default function Support() {
     setTimeout(() => {
       setMessages((prev) => [
         ...prev,
-        { text: "We will help you shortly.", from: "bot" },
+        {
+          text: "We received your request. Our support team will respond shortly.",
+          from: "bot",
+        },
       ]);
-    }, 800);
+    }, 700);
   };
+
+  /* auto scroll */
+  useEffect(() => {
+    if (chatRef.current) {
+      chatRef.current.scrollTop = chatRef.current.scrollHeight;
+    }
+  }, [messages]);
 
   return (
     <PageLayout>
-      <div style={container}>
-        <h2>Support</h2>
 
-        <div style={chatBox}>
-          {messages.map((m, i) => (
-            <div
-              key={i}
-              style={{
-                textAlign: m.from === "user" ? "right" : "left",
-                marginBottom: 8,
-              }}
-            >
-              {m.text}
-            </div>
-          ))}
+      <div style={container}>
+
+        {/* HEADER */}
+        <h2 style={title}>Support</h2>
+        <p style={subtitle}>We usually respond within minutes</p>
+
+        {/* CHAT AREA */}
+        <Card style={chatBox}>
+
+          <div ref={chatRef} style={messagesBox}>
+
+            {messages.length === 0 && (
+              <p style={empty}>Start a conversation 👋</p>
+            )}
+
+            {messages.map((m, i) => (
+              <div
+                key={i}
+                style={{
+                  ...bubble,
+                  alignSelf: m.from === "user" ? "flex-end" : "flex-start",
+                  background:
+                    m.from === "user" ? colors.primary : "#f1f5f9",
+                  color: m.from === "user" ? "#fff" : colors.text,
+                }}
+              >
+                {m.text}
+              </div>
+            ))}
+
+          </div>
+
+        </Card>
+
+        {/* INPUT AREA */}
+        <div style={inputBar}>
+
+          <input
+            value={text}
+            onChange={(e) => setText(e.target.value)}
+            placeholder="Type your message..."
+            style={input}
+          />
+
+          <button style={btn} onClick={send}>
+            Send
+          </button>
+
         </div>
 
-        <input
-          value={text}
-          onChange={(e) => setText(e.target.value)}
-          placeholder="Type message..."
-          style={input}
-        />
-
-        <button onClick={send}>Send</button>
       </div>
+
     </PageLayout>
   );
 }
 
+/* ================= STYLES ================= */
+
 const container = {
-  padding: spacing.md,
-  marginTop: 56,
+  display: "flex",
+  flexDirection: "column",
+  gap: spacing.md,
+};
+
+const title = {
+  fontSize: 20,
+  fontWeight: 700,
+  textAlign: "center",
+};
+
+const subtitle = {
+  fontSize: 12,
+  color: colors.muted,
+  textAlign: "center",
 };
 
 const chatBox = {
-  height: 300,
+  padding: 0,
+  height: "55vh",
+  display: "flex",
+  flexDirection: "column",
+  overflow: "hidden",
+};
+
+const messagesBox = {
+  flex: 1,
+  padding: spacing.md,
+  display: "flex",
+  flexDirection: "column",
+  gap: 10,
   overflowY: "auto",
-  marginBottom: 10,
+};
+
+const bubble = {
+  maxWidth: "75%",
+  padding: "10px 12px",
+  borderRadius: radius.lg,
+  fontSize: 13,
+  lineHeight: 1.4,
+};
+
+const empty = {
+  textAlign: "center",
+  fontSize: 12,
+  color: colors.muted,
+  marginTop: 20,
+};
+
+/* INPUT BAR */
+const inputBar = {
+  display: "flex",
+  gap: 8,
+  padding: spacing.sm,
+  background: "#fff",
+  borderRadius: radius.lg,
+  border: `1px solid #e5e7eb`,
 };
 
 const input = {
-  width: "100%",
-  padding: 10,
+  flex: 1,
+  border: "none",
+  outline: "none",
+  fontSize: 14,
+};
+
+const btn = {
+  background: colors.primary,
+  color: "#fff",
+  border: "none",
+  padding: "10px 14px",
+  borderRadius: radius.md,
+  cursor: "pointer",
 };

@@ -2,38 +2,42 @@
 
 /* ================= COLORS ================= */
 export const colors = {
-  primary: "#0f2a55",
-  primaryDark: "#091f45",
+  /* PRIMARY (Premium Violet System) */
+  primary: "#4F46E5",
+  primaryDark: "#4338CA",
 
-  secondary: "#c69d1f",
-  accent: "#f5c742",
+  /* ACCENTS */
+  accent: "#7C3AED",
+  success: "#22C55E",
+  danger: "#EF4444",
+  warning: "#F59E0B",
 
-  success: "#28a45f",
-  danger: "#d9413b",
-  warning: "#f2a91f",
+  /* BACKGROUNDS */
+  background: "#F9FAFB",
+  surface: "#FFFFFF",
+  backgroundGray: "#F3F4F6",
 
-  background: "#f7f9fc",
-  surface: "#ffffff",
-  backgroundGray: "#eef2f8",
+  /* BORDERS */
+  border: "#E5E7EB",
+  mutedBorder: "#D1D5DB",
 
-  border: "#d4dce8",
-  mutedBorder: "#adb8c5",
+  /* TEXT */
+  text: "#111827",
+  muted: "#6B7280",
+  heading: "#0F172A",
 
-  text: "#132137",
-  muted: "#526477",
-  heading: "#0f2039",
-
-  white: "#ffffff",
+  /* BASE */
+  white: "#FFFFFF",
   black: "#000000",
 };
 
 /* ================= TYPOGRAPHY ================= */
 export const typography = {
   title: {
-    fontSize: "1.4rem",
+    fontSize: "1.5rem",
     fontWeight: 700,
     lineHeight: 1.3,
-    letterSpacing: "0.02em",
+    letterSpacing: "0.01em",
     color: colors.heading,
   },
   subtitle: {
@@ -56,11 +60,11 @@ export const typography = {
 
 /* ================= SHADOWS ================= */
 export const shadows = {
-  card: "0 10px 22px rgba(12, 24, 45, 0.14)",
-  soft: "0 6px 18px rgba(12, 24, 45, 0.10)",
-  strong: "0 16px 38px rgba(12, 24, 45, 0.2)",
+  card: "0 10px 30px rgba(0,0,0,0.08)",
+  soft: "0 6px 20px rgba(0,0,0,0.06)",
+  strong: "0 16px 40px rgba(0,0,0,0.12)",
 };
-export const shadow = shadows; // backward compatibility
+export const shadow = shadows;
 
 /* ================= RADIUS ================= */
 export const radius = {
@@ -71,26 +75,26 @@ export const radius = {
   xl: "24px",
   full: "999px",
 };
-export const radii = radius; // backward compatibility
+export const radii = radius;
 
 /* ================= SPACING ================= */
 export const spacing = {
-  xs: "4px",
-  sm: "8px",
-  md: "14px",
-  lg: "20px",
-  xl: "28px",
-  xxl: "36px",
+  xs: "6px",
+  sm: "10px",
+  md: "16px",
+  lg: "24px",
+  xl: "32px",
+  xxl: "40px",
 };
 
 /* ================= GRADIENTS ================= */
 export const gradients = {
-  primary: "linear-gradient(135deg, #16386a 0%, #0f2a55 100%)",
-  accent: "linear-gradient(135deg, #f4c148 0%, #c69d1f 100%)",
-  success: "linear-gradient(135deg, #2db36d 0%, #1d8c52 100%)",
+  primary: "linear-gradient(135deg, #4F46E5 0%, #7C3AED 100%)",
+  accent: "linear-gradient(135deg, #6366F1 0%, #8B5CF6 100%)",
+  success: "linear-gradient(135deg, #22C55E 0%, #16A34A 100%)",
 };
 
-/* ================= COMPONENT TOKENS (NEW) ================= */
+/* ================= COMPONENT TOKENS ================= */
 export const components = {
   input: {
     padding: "14px",
@@ -100,6 +104,7 @@ export const components = {
     outline: "none",
     background: colors.surface,
     boxShadow: shadows.soft,
+    transition: "all 0.2s ease",
   },
   button: {
     borderRadius: radius.md,
@@ -108,7 +113,7 @@ export const components = {
   },
   cardGlass: {
     background: "rgba(255,255,255,0.7)",
-    backdropFilter: "blur(12px)",
+    backdropFilter: "blur(14px)",
     border: `1px solid ${colors.border}`,
   },
 };

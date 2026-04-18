@@ -2,62 +2,77 @@
 import { useNavigate } from "react-router-dom";
 import { useEffect, useState } from "react";
 import GradientButton from "../components/GradientButton";
-import { colors, typography, shadows, radius, spacing } from "../styles/theme";
+
+import {
+  colors,
+  typography,
+  radius,
+  spacing,
+} from "../styles/theme";
 
 export default function Splash() {
   const navigate = useNavigate();
   const [loaded, setLoaded] = useState(false);
 
-  // ✅ subtle entry animation trigger
   useEffect(() => {
-    setTimeout(() => setLoaded(true), 200);
+    const t = setTimeout(() => setLoaded(true), 250);
+    return () => clearTimeout(t);
   }, []);
 
   return (
     <div style={container}>
-      
-      {/* TOP SECTION */}
-      <div style={topSection}>
-        {/* Logo */}
+
+      {/* BACKGROUND BLUR SHAPES */}
+      <div style={bg1}></div>
+      <div style={bg2}></div>
+
+      {/* CENTER CONTENT */}
+      <div style={center}>
+
+        {/* LOGO */}
         <div
           style={{
-            ...logoBox,
-            transform: loaded ? "scale(1)" : "scale(0.85)",
+            ...logo,
+            transform: loaded ? "translateY(0) scale(1)" : "translateY(20px) scale(0.9)",
             opacity: loaded ? 1 : 0,
           }}
         >
           PNM
         </div>
 
-        {/* Title */}
+        {/* TITLE */}
         <h1
           style={{
             ...title,
             opacity: loaded ? 1 : 0,
-            transform: loaded ? "translateY(0)" : "translateY(10px)",
+            transform: loaded ? "translateY(0)" : "translateY(12px)",
           }}
         >
           Puncture Near Me
         </h1>
 
-        {/* Subtitle */}
+        {/* SUBTITLE */}
         <p
           style={{
             ...subtitle,
             opacity: loaded ? 1 : 0,
-            transform: loaded ? "translateY(0)" : "translateY(10px)",
+            transform: loaded ? "translateY(0)" : "translateY(12px)",
           }}
         >
-          Fast, reliable mechanic service at your fingertips
+          Instant roadside assistance. Anytime. Anywhere.
         </p>
+
       </div>
 
-      {/* BOTTOM CTA */}
-      <div style={bottomSection}>
+      {/* CTA */}
+      <div style={bottom}>
         <GradientButton fullWidth onClick={() => navigate("/login")}>
           Get Started
         </GradientButton>
+
+        <p style={hint}>Fast • Reliable • Verified Mechanics</p>
       </div>
+
     </div>
   );
 }
@@ -67,64 +82,92 @@ export default function Splash() {
 const container = {
   minHeight: "100dvh",
   width: "100%",
-  maxWidth: "420px",
+  maxWidth: 420,
   margin: "0 auto",
   padding: spacing.lg,
-
   display: "flex",
   flexDirection: "column",
   justifyContent: "space-between",
-
-  /* 🔥 PREMIUM BACKGROUND */
   background: "linear-gradient(180deg, #ffffff 0%, #eef2ff 100%)",
+  position: "relative",
+  overflow: "hidden",
 };
 
-/* TOP */
-const topSection = {
+/* BACKGROUND ELEMENTS */
+const bg1 = {
+  position: "absolute",
+  width: 200,
+  height: 200,
+  borderRadius: "50%",
+  background: "rgba(15,42,85,0.08)",
+  top: -40,
+  right: -40,
+  filter: "blur(40px)",
+};
+
+const bg2 = {
+  position: "absolute",
+  width: 180,
+  height: 180,
+  borderRadius: "50%",
+  background: "rgba(29,78,216,0.08)",
+  bottom: -40,
+  left: -40,
+  filter: "blur(40px)",
+};
+
+/* CENTER */
+const center = {
+  flex: 1,
   display: "flex",
   flexDirection: "column",
+  justifyContent: "center",
   alignItems: "center",
-  marginTop: "15vh",
-  gap: spacing.md,
   textAlign: "center",
+  gap: spacing.md,
 };
 
 /* LOGO */
-const logoBox = {
+const logo = {
   width: 110,
   height: 110,
-  borderRadius: 24,
+  borderRadius: radius.xl,
   background: "linear-gradient(135deg, #0f2a55, #1d4ed8)",
   display: "flex",
-  justifyContent: "center",
   alignItems: "center",
+  justifyContent: "center",
   fontSize: 34,
-  fontWeight: "700",
+  fontWeight: 800,
   color: "#fff",
-  boxShadow: "0 20px 40px rgba(29,78,216,0.25)",
-  transition: "all 0.4s ease",
+  boxShadow: "0 20px 50px rgba(29,78,216,0.25)",
+  transition: "all 0.5s ease",
 };
 
 /* TITLE */
 const title = {
   ...typography.title,
-  fontSize: "26px",
-  fontWeight: "700",
-  color: colors.heading,
-  transition: "all 0.4s ease",
+  fontSize: 26,
+  transition: "all 0.5s ease",
 };
 
 /* SUBTITLE */
 const subtitle = {
   ...typography.subtitle,
-  fontSize: "15px",
-  color: colors.muted,
-  maxWidth: "280px",
+  maxWidth: 280,
   lineHeight: 1.5,
-  transition: "all 0.4s ease",
+  transition: "all 0.5s ease",
 };
 
-/* BOTTOM CTA */
-const bottomSection = {
+/* BOTTOM */
+const bottom = {
   marginBottom: spacing.lg,
+  display: "flex",
+  flexDirection: "column",
+  gap: 10,
+};
+
+const hint = {
+  fontSize: 12,
+  textAlign: "center",
+  color: colors.muted,
 };

@@ -1,6 +1,5 @@
  import PageLayout from "../components/PageLayout";
 import Card from "../components/Card";
-import { spacing } from "../styles/theme";
 
 export default function History() {
   const bookings = JSON.parse(localStorage.getItem("pnm_history")) || [];
@@ -8,6 +7,7 @@ export default function History() {
   return (
     <PageLayout>
       <div style={container}>
+
         <h2>Booking History</h2>
 
         {bookings.length === 0 && (
@@ -16,20 +16,30 @@ export default function History() {
           </p>
         )}
 
-        {bookings.map((b, i) => (
-          <Card key={i}>
+        {bookings.map((b) => (
+          <Card key={b.id}>
+
             <h3>{b.service}</h3>
-            <p>{b.date}</p>
-            <p>₹{b.price}</p>
-            <p>{b.status}</p>
+
+            <p>Mechanic: {b.mechanic}</p>
+            <p>Vehicle: {b.vehicle}</p>
+            <p>Date: {b.date}</p>
+
+            <hr style={{ margin: "8px 0" }} />
+
+            <p><b>₹{b.price}</b></p>
+            <p>Status: {b.status}</p>
+
           </Card>
         ))}
+
       </div>
     </PageLayout>
   );
 }
 
 const container = {
-  padding: spacing.md,
-  marginTop: 56,
+  display: "flex",
+  flexDirection: "column",
+  gap: 14,
 };

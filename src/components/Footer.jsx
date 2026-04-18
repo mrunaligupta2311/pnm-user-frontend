@@ -1,6 +1,5 @@
- // src/components/Footer.jsx
-import { useNavigate, useLocation } from "react-router-dom";
-import { colors, radius } from "../styles/theme";
+ import { useNavigate, useLocation } from "react-router-dom";
+import { colors } from "../styles/theme";
 
 export default function Footer() {
   const navigate = useNavigate();
@@ -9,71 +8,69 @@ export default function Footer() {
   const tabs = [
     { name: "Home", path: "/location", icon: "🏠" },
     { name: "Wallet", path: "/wallet", icon: "💰" },
-    { name: "History", path: "/history", icon: "🧾" },
+    { name: "History", path: "/history", icon: "📄" },
     { name: "Profile", path: "/profile", icon: "👤" },
-    { name: "Settings", path: "/settings", icon: "⚙️" },
   ];
 
   return (
-    <div style={footer}>
-      {tabs.map((tab) => {
-        const active = location.pathname === tab.path;
+    <nav style={footer}>
+
+      {tabs.map((t) => {
+        const active = location.pathname === t.path;
 
         return (
           <div
-            key={tab.name}
-            onClick={() => navigate(tab.path)}
+            key={t.name}
+            onClick={() => navigate(t.path)}
             style={{
-              ...tabItem,
-              color: active ? colors.primary : colors.muted,
+              ...item,
+              color: active ? colors.primary : "#888",
+              transform: active ? "scale(1.05)" : "scale(1)",
             }}
           >
-            <div style={{ fontSize: 20 }}>{tab.icon}</div>
-            <div style={{ fontSize: 11, marginTop: 2 }}>{tab.name}</div>
+            <div style={{ fontSize: 18 }}>{t.icon}</div>
+            <div style={{ fontSize: 11 }}>{t.name}</div>
 
-            {active && <div style={activeDot} />}
+            {active && <div style={dot} />}
           </div>
         );
       })}
-    </div>
+
+    </nav>
   );
 }
 
 /* ================= STYLES ================= */
 
 const footer = {
-  position: "sticky",
+  position: "fixed",
   bottom: 0,
   width: "100%",
+  maxWidth: 420,
+  height: 64,
+  background: "rgba(255,255,255,0.95)",
+  backdropFilter: "blur(14px)",
+  borderTop: "1px solid #eee",
   display: "flex",
   justifyContent: "space-around",
   alignItems: "center",
-  padding: "8px 6px",
-  background: "rgba(255,255,255,0.85)", // glassy effect
-  backdropFilter: "blur(15px)",
-  borderTop: "1px solid rgba(0,0,0,0.08)",
-  boxShadow: "0 -2px 15px rgba(0,0,0,0.05)",
-  borderRadius: radius.lg + " " + radius.lg + " 0 0",
-  zIndex: 100,
+  zIndex: 1000,
 };
 
-const tabItem = {
-  flex: 1,
+const item = {
   display: "flex",
   flexDirection: "column",
   alignItems: "center",
   cursor: "pointer",
+  transition: "0.2s",
   position: "relative",
-  padding: "6px 0",
-  transition: "all 0.2s ease",
 };
 
-const activeDot = {
-  position: "absolute",
-  bottom: -2,
-  width: 6,
-  height: 6,
+const dot = {
+  width: 4,
+  height: 4,
   borderRadius: "50%",
-  background: "#0f2a55",
-  boxShadow: "0 0 4px rgba(15,42,85,0.5)",
+  background: colors.primary,
+  position: "absolute",
+  bottom: -6,
 };

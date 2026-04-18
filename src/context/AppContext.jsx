@@ -2,71 +2,123 @@
 
 const AppContext = createContext();
 
-export function AppProvider({ children }) {
-  /* ================= CORE FLOW ================= */
+const STORAGE_KEY = "pnm_state_v1";
 
-  const [location, setLocation] = useState(null);
-  const [vehicle, setVehicle] = useState(null);
-  const [service, setService] = useState(null);
-  const [mechanic, setMechanic] = useState(null);
-
-  /* ================= REQUEST STATE ================= */
-
-  const [request, setRequest] = useState({
-    status: null, // pending | accepted | onway | arrived | started | completed
+/* ================= DEFAULT STATE ================= */
+const defaultState = {
+  location: null,
+  vehicle: null,
+  service: null,
+  mechanic: null,
+  request: {
+    status: null,
     startedAt: null,
-  });
-
-  /* ================= USER ================= */
-
-  const [user, setUser] = useState({
+    updatedAt: null,
+  },
+  user: {
     name: "User",
     phone: "",
     wallet: 1200,
     isLoggedIn: false,
-  });
+  },
+};
 
-  /* ================= PERSISTENCE ================= */
+export function AppProvider({ children }) {
+  const [hydrated, setHydrated] = useState(false);
 
+  /* ================= CORE STATE ================= */
+  const [location, setLocationState] = useState(null);
+  const [vehicle, setVehicleState] = useState(null);
+  const [service, setServiceState] = useState(null);
+  const [mechanic, setMechanicState] = useState(null);
+  const [request, setRequestState] = useState(defaultState.request);
+  const [user, setUserState] = useState(defaultState.user);
+
+  /* ================= LOAD FROM STORAGE ================= */
   useEffect(() => {
-    const saved = localStorage.getItem("pnm_state");
-    if (saved) {
-      const parsed = JSON.parse(saved);
+    try {
+      const saved = localStorage.getItem(STORAGE_KEY);
 
-      setLocation(parsed.location || null);
-      setVehicle(parsed.vehicle || null);
-      setService(parsed.service || null);
-      setMechanic(parsed.mechanic || null);
-      setUser(parsed.user || user);
+      if (saved) {
+        const parsed = JSON.parse(saved);
+
+        setLocationState(parsed.location || null);
+        setVehicleState(parsed.vehicle || null);
+        setServiceState(parsed.service || null);
+        setMechanicState(parsed.mechanic || null);
+        setRequestState(parsed.request || defaultState.request);
+        setUserState(parsed.user || defaultState.user);
+      }
+    } catch (err) {
+      console.warn("Failed to restore state:", err);
+    } finally {
+      setHydrated(true);
     }
   }, []);
 
+  /* ================= SAVE TO STORAGE ================= */
   useEffect(() => {
+    if (!hydrated) return;
+
     localStorage.setItem(
-      "pnm_state",
+      STORAGE_KEY,
       JSON.stringify({
         location,
         vehicle,
         service,
         mechanic,
+        request,
         user,
       })
     );
-  }, [location, vehicle, service, mechanic, user]);
+  }, [location, vehicle, service, mechanic, request, user, hydrated]);
 
-  /* ================= HELPERS ================= */
+  /* ================= SAFE SETTERS ================= */
+  const setLocation = (val) => setLocationState(val);
+  const setVehicle = (val) => setVehicleState(val);
+  const setService = (val) => setServiceState(val);
+  const setMechanic = (val) => setMechanicState(val);
+  const setUser = (val) => setUserState(val);
+
+  const setRequest = (val) => setRequestState(val);
+
+  /* ================= FLOW CONTROL ================= */
 
   const resetFlow = () => {
-    setLocation(null);
-    setVehicle(null);
-    setService(null);
-    setMechanic(null);
-    setRequest({ status: null });
+    setLocationState(null);
+    setVehicleState(null);
+    setServiceState(null);
+    setMechanicState(null);
+    setRequestState(defaultState.request);
+
+    localStorage.removeItem(STORAGE_KEY);
   };
 
+  const softResetFlow = () => {
+    // keeps user data, resets only service flow
+    setVehicleState(null);
+    setServiceState(null);
+    setMechanicState(null);
+    setRequestState(defaultState.request);
+  };
+
+  const isFlowComplete = () => {
+    return !!(location && vehicle && service);
+  };
+
+  const startRequest = () => {
+    setRequestState({
+      status: "pending",
+      startedAt: Date.now(),
+      updatedAt: Date.now(),
+    });
+  };
+
+  /* ================= PROVIDER ================= */
   return (
     <AppContext.Provider
       value={{
+        /* core */
         location,
         setLocation,
         vehicle,
@@ -76,13 +128,22 @@ export function AppProvider({ children }) {
         mechanic,
         setMechanic,
 
+        /* request */
         request,
         setRequest,
+        startRequest,
 
+        /* user */
         user,
         setUser,
 
+        /* flow control */
         resetFlow,
+        softResetFlow,
+        isFlowComplete,
+
+        /* system */
+        hydrated,
       }}
     >
       {children}

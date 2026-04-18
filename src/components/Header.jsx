@@ -1,105 +1,54 @@
- // src/components/Header.jsx
-import { useState, useEffect } from "react";
-import { colors, radius, shadows, spacing } from "../styles/theme";
+ import { useState, useEffect } from "react";
+import { useNavigate } from "react-router-dom";
+import { colors, radius, shadows } from "../styles/theme";
 
 export default function Header() {
-  const [showHelp, setShowHelp] = useState(false);
+  const navigate = useNavigate();
   const [canInstall, setCanInstall] = useState(false);
 
-  /* 🔥 Check if install prompt available */
   useEffect(() => {
-    const checkInstall = () => {
-      if (window.deferredPrompt) {
-        setCanInstall(true);
-      }
-    };
-
-    checkInstall();
-    window.addEventListener("beforeinstallprompt", checkInstall);
-
-    return () => {
-      window.removeEventListener("beforeinstallprompt", checkInstall);
-    };
+    const handler = () => setCanInstall(!!window.deferredPrompt);
+    handler();
+    window.addEventListener("beforeinstallprompt", handler);
+    return () => window.removeEventListener("beforeinstallprompt", handler);
   }, []);
 
-  /* 🔥 Install handler */
   const handleInstall = async () => {
-    const promptEvent = window.deferredPrompt;
+    const prompt = window.deferredPrompt;
+    if (!prompt) return;
 
-    if (!promptEvent) {
-      alert("Install not available yet");
-      return;
-    }
-
-    promptEvent.prompt();
-
-    const { outcome } = await promptEvent.userChoice;
-
-    if (outcome === "accepted") {
-      console.log("User installed app");
-    } else {
-      console.log("User dismissed install");
-    }
-
+    prompt.prompt();
+    await prompt.userChoice;
     window.deferredPrompt = null;
     setCanInstall(false);
   };
 
   return (
-    <>
-      <header style={header}>
-        <div style={inner}>
-          
-          {/* ✅ Logo */}
-          <img src="/P.N.M.-icon.png" alt="PNM logo" style={logo} />
+    <header style={header}>
+      <div style={inner}>
 
-          {/* ✅ Right Actions */}
-          <div style={actions}>
-            
-            {/* 🔥 Install Button */}
-            {canInstall && (
-              <button
-                style={installBtn}
-                onClick={handleInstall}
-              >
-                Install
-              </button>
-            )}
-
-            {/* ✅ Support Button */}
-            <button
-              style={supportBtn}
-              onClick={() => setShowHelp(true)}
-              onMouseEnter={(e) => {
-                e.currentTarget.style.background = colors.primary + "22";
-              }}
-              onMouseLeave={(e) => {
-                e.currentTarget.style.background = "#f3f4f6";
-              }}
-            >
-              Support
-            </button>
-
-          </div>
+        {/* LEFT - LOGO */}
+        <div style={logo} onClick={() => navigate("/location")}>
+          PNM
         </div>
-      </header>
 
-      {/* 🔥 HELP MODAL */}
-      {showHelp && (
-        <div style={overlay} onClick={() => setShowHelp(false)}>
-          <div style={modal} onClick={(e) => e.stopPropagation()}>
-            <h3>Help</h3>
-            <p style={{ fontSize: 13, color: "#555" }}>
-              Go step by step to book a mechanic. Track everything live.
-            </p>
+        {/* RIGHT ACTIONS */}
+        <div style={actions}>
 
-            <button style={close} onClick={() => setShowHelp(false)}>
-              Close
+          {canInstall && (
+            <button style={installBtn} onClick={handleInstall}>
+              Install
             </button>
-          </div>
+          )}
+
+          <button style={supportBtn} onClick={() => navigate("/support")}>
+            Help
+          </button>
+
         </div>
-      )}
-    </>
+
+      </div>
+    </header>
   );
 }
 
@@ -108,86 +57,50 @@ export default function Header() {
 const header = {
   position: "fixed",
   top: 0,
-  left: 0,
   width: "100%",
+  maxWidth: 420,
   height: 56,
+  background: "rgba(255,255,255,0.9)",
+  backdropFilter: "blur(14px)",
+  borderBottom: "1px solid #eee",
+  zIndex: 1000,
   display: "flex",
   justifyContent: "center",
-  background: "#ffffffcc",
-  backdropFilter: "blur(10px)",
-  zIndex: 1000,
-  borderBottom: "1px solid #e5e7eb",
 };
 
 const inner = {
   width: "100%",
-  maxWidth: "420px",
+  padding: "0 14px",
   display: "flex",
   justifyContent: "space-between",
   alignItems: "center",
-  padding: "0 12px",
 };
 
 const logo = {
-  height: 26,
+  fontWeight: 800,
+  fontSize: 16,
+  color: colors.primary,
+  cursor: "pointer",
 };
 
 const actions = {
   display: "flex",
-  gap: "8px",
-  alignItems: "center",
+  gap: 8,
 };
 
-/* 🔥 Install Button */
 const installBtn = {
   padding: "6px 10px",
-  borderRadius: radius.md,
+  borderRadius: radius.full,
   border: "none",
   background: colors.primary,
   color: "#fff",
-  cursor: "pointer",
-  fontSize: "12px",
-  fontWeight: 600,
+  fontSize: 12,
 };
 
-/* Support Button */
 const supportBtn = {
-  padding: "6px 12px",
-  borderRadius: radius.md,
-  border: "none",
-  background: "#f3f4f6",
-  cursor: "pointer",
-  fontSize: "13px",
-  fontWeight: 600,
-  transition: "all 0.25s ease",
-};
-
-/* MODAL */
-const overlay = {
-  position: "fixed",
-  inset: 0,
-  background: "rgba(0,0,0,0.3)",
-  display: "flex",
-  justifyContent: "center",
-  alignItems: "center",
-  zIndex: 1500,
-};
-
-const modal = {
+  padding: "6px 10px",
+  borderRadius: radius.full,
+  border: "1px solid #ddd",
   background: "#fff",
-  padding: spacing.md,
-  borderRadius: radius.lg,
-  width: "90%",
-  maxWidth: 300,
-  boxShadow: shadows.card,
-};
-
-const close = {
-  marginTop: spacing.sm,
-  padding: spacing.sm,
-  border: "none",
-  background: colors.primary,
-  color: "#fff",
-  borderRadius: radius.sm,
-  cursor: "pointer",
+  fontSize: 12,
 };

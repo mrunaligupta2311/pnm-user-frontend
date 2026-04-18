@@ -1,6 +1,9 @@
  import { useState } from "react";
 import { useNavigate } from "react-router-dom";
 import GradientButton from "../components/GradientButton";
+import PageLayout from "../components/PageLayout";
+import { useApp } from "../context/AppContext";
+
 import {
   typography,
   colors,
@@ -11,6 +14,7 @@ import {
 
 export default function Login() {
   const navigate = useNavigate();
+  const { setUser } = useApp();
 
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
@@ -30,49 +34,50 @@ export default function Login() {
     }
 
     if (!isValidEmail(email)) {
-      setError("Enter a valid email address");
+      setError("Enter valid email");
       return;
     }
 
     setLoading(true);
 
-    // 🔥 Simulated API
     setTimeout(() => {
+      setUser({
+        name: "User",
+        email,
+        isLoggedIn: true,
+      });
+
       setLoading(false);
-      navigate("/location"); // ✅ mechanic flow
-    }, 1000);
+      navigate("/location");
+    }, 800);
   };
 
   return (
-    <div style={wrapper}>
+    <PageLayout showHeader={false} showFooter={false}>
       <div style={container}>
         
-        {/* HEADER */}
         <div style={header}>
           <h2 style={title}>Welcome Back</h2>
-          <p style={subtitle}>Login to continue to PNM Mechanic</p>
+          <p style={subtitle}>Login to continue</p>
         </div>
 
-        {/* FORM */}
         <div style={card}>
-          
-          {/* EMAIL */}
           <input
-            type="email"
-            placeholder="Email address"
+            placeholder="Email"
             value={email}
             onChange={(e) => setEmail(e.target.value)}
             style={input}
+            onKeyDown={(e) => e.key === "Enter" && handleLogin()}
           />
 
-          {/* PASSWORD */}
           <div style={passwordWrapper}>
             <input
               type={showPassword ? "text" : "password"}
               placeholder="Password"
               value={password}
               onChange={(e) => setPassword(e.target.value)}
-              style={{ ...input, paddingRight: "40px" }}
+              style={{ ...input, paddingRight: 40 }}
+              onKeyDown={(e) => e.key === "Enter" && handleLogin()}
             />
 
             <span
@@ -83,95 +88,66 @@ export default function Login() {
             </span>
           </div>
 
-          {/* ERROR */}
           {error && <p style={errorText}>{error}</p>}
 
-          {/* BUTTON */}
-          <GradientButton
-            fullWidth
-            onClick={handleLogin}
-            disabled={loading}
-          >
-            {loading ? "Logging in..." : "Login"}
+          <GradientButton fullWidth onClick={handleLogin}>
+            {loading ? "Loading..." : "Login"}
           </GradientButton>
         </div>
 
-        {/* SIGNUP */}
         <p style={signupText}>
-          Don’t have an account?{" "}
+          Don’t have account?{" "}
           <span style={link} onClick={() => navigate("/signup")}>
-            Sign Up
+            Signup
           </span>
         </p>
 
       </div>
-    </div>
+    </PageLayout>
   );
 }
 
 /* ================= STYLES ================= */
 
-/* 🔥 MOBILE WRAPPER */
-const wrapper = {
-  minHeight: "100dvh",
-  display: "flex",
-  justifyContent: "center",
-  background: "linear-gradient(180deg, #ffffff 0%, #eef2ff 100%)",
-};
-
-/* 🔥 MOBILE WIDTH CONTROL */
 const container = {
-  width: "100%",
-  maxWidth: "420px",
-  padding: spacing.lg,
   display: "flex",
   flexDirection: "column",
   justifyContent: "center",
   gap: spacing.lg,
+  minHeight: "80vh",
 };
 
-/* HEADER */
 const header = {
   textAlign: "center",
 };
 
 const title = {
   ...typography.title,
-  fontSize: "24px",
-  fontWeight: "700",
-  color: colors.heading,
+  fontSize: 22,
 };
 
 const subtitle = {
   ...typography.subtitle,
-  color: colors.muted,
 };
 
-/* CARD */
 const card = {
-  width: "100%",
   padding: spacing.lg,
   borderRadius: radius.lg,
-  background: "#fff",
+  background: colors.surface,
   boxShadow: shadows.card,
-  border: `1px solid ${colors.border}`,
   display: "flex",
   flexDirection: "column",
   gap: spacing.sm,
 };
 
-/* INPUT */
 const input = {
   width: "100%",
   padding: "14px",
   borderRadius: radius.md,
   border: `1px solid ${colors.border}`,
-  fontSize: "14px",
-  outline: "none",
-  transition: "0.2s",
+  fontSize: 14,
 };
 
-/* PASSWORD */
 const passwordWrapper = {
   position: "relative",
 };
@@ -182,20 +158,17 @@ const eyeIcon = {
   top: "50%",
   transform: "translateY(-50%)",
   cursor: "pointer",
-  fontSize: "14px",
 };
 
-/* ERROR */
 const errorText = {
-  color: "#ef4444",
-  fontSize: "13px",
+  color: colors.danger,
+  fontSize: 13,
   textAlign: "center",
 };
 
-/* SIGNUP */
 const signupText = {
   textAlign: "center",
-  fontSize: "14px",
+  fontSize: 14,
   color: colors.muted,
 };
 

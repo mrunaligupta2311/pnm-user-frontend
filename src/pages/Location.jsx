@@ -1,5 +1,4 @@
- // src/pages/Location.jsx
-import { useState, useEffect, useRef } from "react";
+ import { useState, useEffect, useRef } from "react";
 import { useNavigate } from "react-router-dom";
 import {
   MapContainer,
@@ -12,6 +11,7 @@ import {
 import PageLayout from "../components/PageLayout";
 import GradientButton from "../components/GradientButton";
 import Card from "../components/Card";
+import Loader from "../components/Loader";
 import { useApp } from "../context/AppContext";
 
 import {
@@ -34,19 +34,27 @@ export default function Location() {
 
   const debounceRef = useRef(null);
 
-  /* ================= CURRENT LOCATION ================= */
+  /* ================= AUTO LOAD CURRENT ================= */
   useEffect(() => {
     handleUseCurrent();
   }, []);
 
+  /* ================= GET CURRENT LOCATION ================= */
   const handleUseCurrent = () => {
-    navigator.geolocation?.getCurrentPosition(
+    setLoading(true);
+
+    if (!navigator.geolocation) {
+      alert("Geolocation not supported");
+      setLoading(false);
+      return;
+    }
+
+    navigator.geolocation.getCurrentPosition(
       async (pos) => {
         const lat = pos.coords.latitude;
         const lng = pos.coords.longitude;
 
         setPosition([lat, lng]);
-        setLoading(false);
 
         try {
           const res = await fetch(
@@ -57,6 +65,8 @@ export default function Location() {
         } catch {
           setAddress("Unable to fetch address");
         }
+
+        setLoading(false);
       },
       () => {
         setLoading(false);
@@ -65,22 +75,11 @@ export default function Location() {
     );
   };
 
-  /* ================= MAP ================= */
+  /* ================= MAP MARKER ================= */
   function LocationMarker() {
     useMapEvents({
       async click(e) {
-        const lat = e.latlng.lat;
-        const lng = e.latlng.lng;
-
-        setPosition([lat, lng]);
-
-        try {
-          const res = await fetch(
-            `https://nominatim.openstreetmap.org/reverse?format=json&lat=${lat}&lon=${lng}`
-          );
-          const data = await res.json();
-          setAddress(data.display_name || "");
-        } catch {}
+        updatePosition(e.latlng.lat, e.latlng.lng);
       },
     });
 
@@ -89,25 +88,26 @@ export default function Location() {
         position={position}
         draggable
         eventHandlers={{
-          dragend: async (e) => {
+          dragend: (e) => {
             const p = e.target.getLatLng();
-            const lat = p.lat;
-            const lng = p.lng;
-
-            setPosition([lat, lng]);
-
-            try {
-              const res = await fetch(
-                `https://nominatim.openstreetmap.org/reverse?format=json&lat=${lat}&lon=${lng}`
-              );
-              const data = await res.json();
-              setAddress(data.display_name || "");
-            } catch {}
+            updatePosition(p.lat, p.lng);
           },
         }}
       />
     );
   }
+
+  const updatePosition = async (lat, lng) => {
+    setPosition([lat, lng]);
+
+    try {
+      const res = await fetch(
+        `https://nominatim.openstreetmap.org/reverse?format=json&lat=${lat}&lon=${lng}`
+      );
+      const data = await res.json();
+      setAddress(data.display_name || "");
+    } catch {}
+  };
 
   function ChangeView({ center }) {
     const map = useMap();
@@ -167,15 +167,15 @@ export default function Location() {
   return (
     <PageLayout>
       <div style={container}>
-        
-        <h2 style={title}>Select Location</h2>
 
-        {/* 🔥 SEARCH (ELEVATED) */}
+        <h2 style={title}>Select Your Location</h2>
+
+        {/* ================= SEARCH ================= */}
         <div style={searchWrapper}>
           <input
             value={search}
             onChange={(e) => handleSearch(e.target.value)}
-            placeholder="Search location..."
+            placeholder="Search address..."
             style={searchInput}
           />
 
@@ -194,8 +194,10 @@ export default function Location() {
           )}
         </div>
 
-        {/* 🔥 MAP */}
+        {/* ================= MAP ================= */}
         <div style={mapWrapper}>
+          {loading && <Loader text="Fetching location..." />}
+
           <MapContainer
             center={position}
             zoom={14}
@@ -212,19 +214,20 @@ export default function Location() {
             )}
           </MapContainer>
 
+          {/* QUICK GPS ICON */}
           <button style={gpsBtn} onClick={handleUseCurrent}>
             📍
           </button>
         </div>
 
-        {/* 🔥 ADDRESS CARD */}
+        {/* ================= ADDRESS ================= */}
         {address && (
-          <Card style={addressCard}>
+          <Card variant="glass">
             <p style={addressText}>{address}</p>
           </Card>
         )}
 
-        {/* 🔥 BOTTOM CTA (GROUPED) */}
+        {/* ================= MAIN CTA ================= */}
         <div style={ctaBox}>
           <GradientButton fullWidth onClick={handleUseCurrent}>
             Use Current Location
@@ -243,55 +246,48 @@ export default function Location() {
 /* ================= STYLES ================= */
 
 const container = {
-  flex: 1,
-  padding: spacing.md,
   display: "flex",
   flexDirection: "column",
-  gap: spacing.lg,
-  marginTop: 56,
+  gap: spacing.md,
 };
 
 const title = {
   ...typography.title,
-  textAlign: "center",
 };
 
-/* SEARCH */
 const searchWrapper = {
   position: "relative",
-  zIndex: 1000,
+  zIndex: 10,
 };
 
 const searchInput = {
   width: "100%",
-  padding: "16px",
+  padding: "14px",
   borderRadius: radius.lg,
   border: `1px solid ${colors.border}`,
-  background: "#fff",
-  boxShadow: "0 6px 20px rgba(0,0,0,0.08)",
-  fontSize: "14px",
+  background: colors.surface,
+  boxShadow: shadows.soft,
+  fontSize: 14,
 };
 
-/* DROPDOWN */
 const dropdown = {
   position: "absolute",
   top: "110%",
   width: "100%",
   background: "#fff",
-  borderRadius: 14,
-  boxShadow: "0 15px 30px rgba(0,0,0,0.15)",
+  borderRadius: radius.md,
+  boxShadow: shadows.strong,
   maxHeight: 220,
   overflowY: "auto",
 };
 
 const dropdownItem = {
-  padding: 14,
-  borderBottom: "1px solid #eee",
+  padding: 12,
+  borderBottom: `1px solid ${colors.border}`,
   cursor: "pointer",
   fontSize: 13,
 };
 
-/* MAP */
 const mapWrapper = {
   height: 320,
   borderRadius: radius.lg,
@@ -300,7 +296,6 @@ const mapWrapper = {
   boxShadow: shadows.card,
 };
 
-/* GPS */
 const gpsBtn = {
   position: "absolute",
   right: 12,
@@ -309,13 +304,8 @@ const gpsBtn = {
   border: "none",
   padding: 10,
   borderRadius: "50%",
-  boxShadow: "0 6px 16px rgba(0,0,0,0.2)",
+  boxShadow: shadows.soft,
   cursor: "pointer",
-};
-
-/* ADDRESS */
-const addressCard = {
-  padding: 14,
 };
 
 const addressText = {
@@ -323,10 +313,8 @@ const addressText = {
   color: colors.text,
 };
 
-/* CTA */
 const ctaBox = {
   display: "flex",
   flexDirection: "column",
   gap: spacing.sm,
-  marginTop: "auto",
 };

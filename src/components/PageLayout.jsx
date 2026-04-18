@@ -1,16 +1,21 @@
  import Header from "./Header";
 import Footer from "./Footer";
+import { colors } from "../styles/theme";
 
-export default function PageLayout({ children }) {
+export default function PageLayout({
+  children,
+  showHeader = true,
+  showFooter = true,
+}) {
   return (
     <div style={wrapper}>
-      <Header />
+      {showHeader && <Header />}
 
       <main style={content}>
         <div style={inner}>{children}</div>
       </main>
 
-      <Footer />
+      {showFooter && <Footer />}
     </div>
   );
 }
@@ -19,22 +24,25 @@ export default function PageLayout({ children }) {
 
 const wrapper = {
   width: "100%",
-  maxWidth: "420px",
+  maxWidth: 420,
   margin: "0 auto",
-  minHeight: "100dvh",
+  height: "100dvh",
   display: "flex",
   flexDirection: "column",
-  background: "#f7f9fc",
-  position: "relative",
+  background: colors.background,
+  overflow: "hidden",
 };
 
+/* main scroll area */
 const content = {
   flex: 1,
   overflowY: "auto",
-  paddingTop: 70,     // header space
-  paddingBottom: 80,  // footer space
+  WebkitOverflowScrolling: "touch",
+  paddingTop: 56,     // fixed header space (NO MORE manual marginTop anywhere)
+  paddingBottom: 70,  // fixed footer space
 };
 
+/* inner consistent padding system */
 const inner = {
   padding: 16,
   display: "flex",
