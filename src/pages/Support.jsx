@@ -1,80 +1,71 @@
- // src/pages/Support.jsx
-import { useState } from "react";
+ import { useState } from "react";
 import PageLayout from "../components/PageLayout";
-import { typography, colors, spacing } from "../styles/theme";
-import GradientButton from "../components/GradientButton";
+import { spacing } from "../styles/theme";
 
 export default function Support() {
-  const [message, setMessage] = useState("");
+  const [messages, setMessages] = useState([]);
+  const [text, setText] = useState("");
 
-  const handleSend = () => {
-    if (!message.trim()) return;
-    alert(`Message sent: ${message}`);
-    setMessage("");
-    // In production: send message to backend
-  };
+  const send = () => {
+    if (!text.trim()) return;
 
-  const handleCall = () => {
-    // US client example number
-    window.location.href = "tel:+1234567890";
+    const userMsg = { text, from: "user" };
+
+    setMessages((prev) => [...prev, userMsg]);
+    setText("");
+
+    setTimeout(() => {
+      setMessages((prev) => [
+        ...prev,
+        { text: "We will help you shortly.", from: "bot" },
+      ]);
+    }, 800);
   };
 
   return (
     <PageLayout>
       <div style={container}>
-        <h2 style={{ ...typography.title, textAlign: "center", marginBottom: spacing.md }}>
-          Support
-        </h2>
+        <h2>Support</h2>
 
-        <p style={{ ...typography.body, textAlign: "center", marginBottom: spacing.md }}>
-          Need help? Chat or call our support team.
-        </p>
-
-        {/* Chat box */}
         <div style={chatBox}>
-          <textarea
-            style={textarea}
-            placeholder="Type your message..."
-            value={message}
-            onChange={(e) => setMessage(e.target.value)}
-          />
-          <GradientButton fullWidth onClick={handleSend}>
-            Send Message
-          </GradientButton>
+          {messages.map((m, i) => (
+            <div
+              key={i}
+              style={{
+                textAlign: m.from === "user" ? "right" : "left",
+                marginBottom: 8,
+              }}
+            >
+              {m.text}
+            </div>
+          ))}
         </div>
 
-        {/* Call support */}
-        <div style={{ marginTop: spacing.md }}>
-          <GradientButton fullWidth onClick={handleCall}>
-            Call Support
-          </GradientButton>
-        </div>
+        <input
+          value={text}
+          onChange={(e) => setText(e.target.value)}
+          placeholder="Type message..."
+          style={input}
+        />
+
+        <button onClick={send}>Send</button>
       </div>
     </PageLayout>
   );
 }
 
-/* ===== STYLES ===== */
 const container = {
-  flex: 1,
-  display: "flex",
-  flexDirection: "column",
   padding: spacing.md,
-  gap: spacing.md,
+  marginTop: 56,
 };
 
 const chatBox = {
-  display: "flex",
-  flexDirection: "column",
-  gap: spacing.sm,
+  height: 300,
+  overflowY: "auto",
+  marginBottom: 10,
 };
 
-const textarea = {
+const input = {
   width: "100%",
-  padding: spacing.md,
-  borderRadius: 14,
-  border: `1px solid ${colors.border}`,
-  resize: "none",
-  fontSize: 14,
-  minHeight: "100px",
+  padding: 10,
 };

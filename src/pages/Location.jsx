@@ -1,4 +1,5 @@
- import { useState, useEffect, useRef } from "react";
+ // src/pages/Location.jsx
+import { useState, useEffect, useRef } from "react";
 import { useNavigate } from "react-router-dom";
 import {
   MapContainer,
@@ -11,34 +12,75 @@ import {
 import PageLayout from "../components/PageLayout";
 import GradientButton from "../components/GradientButton";
 import Card from "../components/Card";
-import { typography, colors, shadows, radius, spacing } from "../styles/theme";
+import { useApp } from "../context/AppContext";
+
+import {
+  typography,
+  colors,
+  shadows,
+  radius,
+  spacing,
+} from "../styles/theme";
 
 export default function Location() {
   const navigate = useNavigate();
+  const { setLocation } = useApp();
 
-  const [position, setPosition] = useState([22.3040, 73.1760]);
+  const [position, setPosition] = useState([22.304, 73.176]);
+  const [address, setAddress] = useState("");
   const [search, setSearch] = useState("");
   const [results, setResults] = useState([]);
   const [loading, setLoading] = useState(true);
 
   const debounceRef = useRef(null);
 
-  // ✅ Get current location
+  /* ================= CURRENT LOCATION ================= */
   useEffect(() => {
-    navigator.geolocation?.getCurrentPosition(
-      (pos) => {
-        setPosition([pos.coords.latitude, pos.coords.longitude]);
-        setLoading(false);
-      },
-      () => setLoading(false)
-    );
+    handleUseCurrent();
   }, []);
 
-  // ✅ Marker logic
+  const handleUseCurrent = () => {
+    navigator.geolocation?.getCurrentPosition(
+      async (pos) => {
+        const lat = pos.coords.latitude;
+        const lng = pos.coords.longitude;
+
+        setPosition([lat, lng]);
+        setLoading(false);
+
+        try {
+          const res = await fetch(
+            `https://nominatim.openstreetmap.org/reverse?format=json&lat=${lat}&lon=${lng}`
+          );
+          const data = await res.json();
+          setAddress(data.display_name || "");
+        } catch {
+          setAddress("Unable to fetch address");
+        }
+      },
+      () => {
+        setLoading(false);
+        alert("Location permission denied");
+      }
+    );
+  };
+
+  /* ================= MAP ================= */
   function LocationMarker() {
     useMapEvents({
-      click(e) {
-        setPosition([e.latlng.lat, e.latlng.lng]);
+      async click(e) {
+        const lat = e.latlng.lat;
+        const lng = e.latlng.lng;
+
+        setPosition([lat, lng]);
+
+        try {
+          const res = await fetch(
+            `https://nominatim.openstreetmap.org/reverse?format=json&lat=${lat}&lon=${lng}`
+          );
+          const data = await res.json();
+          setAddress(data.display_name || "");
+        } catch {}
       },
     });
 
@@ -47,27 +89,37 @@ export default function Location() {
         position={position}
         draggable
         eventHandlers={{
-          dragend: (e) => {
+          dragend: async (e) => {
             const p = e.target.getLatLng();
-            setPosition([p.lat, p.lng]);
+            const lat = p.lat;
+            const lng = p.lng;
+
+            setPosition([lat, lng]);
+
+            try {
+              const res = await fetch(
+                `https://nominatim.openstreetmap.org/reverse?format=json&lat=${lat}&lon=${lng}`
+              );
+              const data = await res.json();
+              setAddress(data.display_name || "");
+            } catch {}
           },
         }}
       />
     );
   }
 
-  // ✅ Smooth movement
   function ChangeView({ center }) {
     const map = useMap();
 
     useEffect(() => {
       map.flyTo(center, 15, { duration: 0.5 });
-    }, [center, map]);
+    }, [center]);
 
     return null;
   }
 
-  // ✅ Debounced search
+  /* ================= SEARCH ================= */
   const handleSearch = (value) => {
     setSearch(value);
 
@@ -85,44 +137,45 @@ export default function Location() {
         );
         const data = await res.json();
         setResults(data.slice(0, 5));
-      } catch (err) {
-        console.error(err);
-      }
+      } catch {}
     }, 400);
   };
 
-  // ✅ Select suggestion
   const selectLocation = (place) => {
     const lat = parseFloat(place.lat);
-    const lon = parseFloat(place.lon);
+    const lng = parseFloat(place.lon);
 
-    setPosition([lat, lon]);
+    setPosition([lat, lng]);
     setSearch(place.display_name);
     setResults([]);
+    setAddress(place.display_name);
   };
 
-  // ✅ Use current location
-  const handleUseCurrent = () => {
-    navigator.geolocation?.getCurrentPosition(
-      (pos) => {
-        setPosition([pos.coords.latitude, pos.coords.longitude]);
-      },
-      () => alert("Location permission denied")
-    );
+  /* ================= CONFIRM ================= */
+  const handleConfirm = () => {
+    if (!address) return alert("Select location first");
+
+    setLocation({
+      lat: position[0],
+      lng: position[1],
+      address,
+    });
+
+    navigate("/vehicle");
   };
 
   return (
     <PageLayout>
       <div style={container}>
+        
         <h2 style={title}>Select Location</h2>
 
-        {/* 🔍 SEARCH */}
-        <div style={searchContainer}>
+        {/* 🔥 SEARCH (ELEVATED) */}
+        <div style={searchWrapper}>
           <input
-            type="text"
-            placeholder="Search location..."
             value={search}
             onChange={(e) => handleSearch(e.target.value)}
+            placeholder="Search location..."
             style={searchInput}
           />
 
@@ -141,7 +194,7 @@ export default function Location() {
           )}
         </div>
 
-        {/* 🗺️ MAP */}
+        {/* 🔥 MAP */}
         <div style={mapWrapper}>
           <MapContainer
             center={position}
@@ -155,42 +208,35 @@ export default function Location() {
               <>
                 <ChangeView center={position} />
                 <LocationMarker />
-                <CustomZoom />
               </>
             )}
           </MapContainer>
 
-          {/* 📍 Floating GPS */}
           <button style={gpsBtn} onClick={handleUseCurrent}>
             📍
           </button>
         </div>
 
-        {/* ✅ MAIN BUTTON (NEW - IMPORTANT) */}
-        <GradientButton fullWidth onClick={handleUseCurrent}>
-          Use Current Location
-        </GradientButton>
+        {/* 🔥 ADDRESS CARD */}
+        {address && (
+          <Card style={addressCard}>
+            <p style={addressText}>{address}</p>
+          </Card>
+        )}
 
-        {/* ✅ CONFIRM */}
-        <Card>
-          <GradientButton fullWidth onClick={() => navigate("/vehicle")}>
+        {/* 🔥 BOTTOM CTA (GROUPED) */}
+        <div style={ctaBox}>
+          <GradientButton fullWidth onClick={handleUseCurrent}>
+            Use Current Location
+          </GradientButton>
+
+          <GradientButton fullWidth onClick={handleConfirm}>
             Confirm Location
           </GradientButton>
-        </Card>
+        </div>
+
       </div>
     </PageLayout>
-  );
-}
-
-/* ================= CUSTOM ZOOM ================= */
-function CustomZoom() {
-  const map = useMap();
-
-  return (
-    <div style={zoomBox}>
-      <button onClick={() => map.zoomIn()} style={zoomBtn}>+</button>
-      <button onClick={() => map.zoomOut()} style={zoomBtn}>−</button>
-    </div>
   );
 }
 
@@ -201,7 +247,7 @@ const container = {
   padding: spacing.md,
   display: "flex",
   flexDirection: "column",
-  gap: spacing.md,
+  gap: spacing.lg,
   marginTop: 56,
 };
 
@@ -211,18 +257,19 @@ const title = {
 };
 
 /* SEARCH */
-const searchContainer = {
+const searchWrapper = {
   position: "relative",
-  zIndex: 2000,
+  zIndex: 1000,
 };
 
 const searchInput = {
   width: "100%",
-  padding: "14px",
+  padding: "16px",
   borderRadius: radius.lg,
   border: `1px solid ${colors.border}`,
   background: "#fff",
-  boxShadow: shadows.soft,
+  boxShadow: "0 6px 20px rgba(0,0,0,0.08)",
+  fontSize: "14px",
 };
 
 /* DROPDOWN */
@@ -231,21 +278,22 @@ const dropdown = {
   top: "110%",
   width: "100%",
   background: "#fff",
-  borderRadius: 12,
-  boxShadow: "0 10px 25px rgba(0,0,0,0.12)",
-  maxHeight: "200px",
+  borderRadius: 14,
+  boxShadow: "0 15px 30px rgba(0,0,0,0.15)",
+  maxHeight: 220,
   overflowY: "auto",
 };
 
 const dropdownItem = {
-  padding: "12px",
-  cursor: "pointer",
+  padding: 14,
   borderBottom: "1px solid #eee",
+  cursor: "pointer",
+  fontSize: 13,
 };
 
 /* MAP */
 const mapWrapper = {
-  height: "360px",
+  height: 320,
   borderRadius: radius.lg,
   overflow: "hidden",
   position: "relative",
@@ -255,31 +303,30 @@ const mapWrapper = {
 /* GPS */
 const gpsBtn = {
   position: "absolute",
-  right: 10,
-  top: 10,
+  right: 12,
+  top: 12,
   background: "#fff",
   border: "none",
-  padding: "10px",
+  padding: 10,
   borderRadius: "50%",
-  boxShadow: "0 4px 12px rgba(0,0,0,0.2)",
+  boxShadow: "0 6px 16px rgba(0,0,0,0.2)",
   cursor: "pointer",
-  zIndex: 1000,
 };
 
-/* ZOOM */
-const zoomBox = {
-  position: "absolute",
-  right: 10,
-  bottom: 10,
-  background: "#fff",
-  borderRadius: 10,
-  overflow: "hidden",
-  zIndex: 1000,
+/* ADDRESS */
+const addressCard = {
+  padding: 14,
 };
 
-const zoomBtn = {
-  border: "none",
-  background: "#fff",
-  padding: "8px 12px",
-  cursor: "pointer",
+const addressText = {
+  fontSize: 13,
+  color: colors.text,
+};
+
+/* CTA */
+const ctaBox = {
+  display: "flex",
+  flexDirection: "column",
+  gap: spacing.sm,
+  marginTop: "auto",
 };

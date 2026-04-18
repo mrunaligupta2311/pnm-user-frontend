@@ -134,3 +134,9 @@ textarea {
   from { transform: translateY(0); }
   to { transform: translateY(-12px); }
 }
+
+@keyframes spin {
+  to {
+    transform: rotate(360deg);
+  }
+}

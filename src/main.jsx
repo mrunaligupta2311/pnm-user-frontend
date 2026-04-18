@@ -1,10 +1,10 @@
- // src/main.jsx
-import "leaflet/dist/leaflet.css"; // must be first
+ import "leaflet/dist/leaflet.css";
 import { StrictMode } from "react";
 import { createRoot } from "react-dom/client";
 import "./index.css";
 import App from "./App.jsx";
 import { register } from "./serviceWorker";
+import { AppProvider } from "./context/AppContext";
 
 /* ================= ROOT ================= */
 const rootElement = document.getElementById("root");
@@ -16,7 +16,6 @@ if (!rootElement) {
 const root = createRoot(rootElement);
 
 /* ================= SERVICE WORKER ================= */
-// Only enable in production
 if (import.meta.env.PROD) {
   register();
 }
@@ -24,6 +23,8 @@ if (import.meta.env.PROD) {
 /* ================= RENDER ================= */
 root.render(
   <StrictMode>
-    <App />
+    <AppProvider>
+      <App />
+    </AppProvider>
   </StrictMode>
 );
