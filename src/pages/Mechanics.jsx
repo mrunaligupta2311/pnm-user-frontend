@@ -30,9 +30,9 @@ export default function Mechanics() {
     setMechanic(m);
 
     // move flow forward
-    setFlowStep("request");
+    setFlowStep("cost");
 
-    navigate("/requesting");
+    navigate("/cost");
   };
 
   return (
